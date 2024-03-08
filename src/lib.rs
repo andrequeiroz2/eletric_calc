@@ -27,7 +27,7 @@ pub struct Operation{
 
 impl Operation {
 
-    pub fn new(self) -> Result<String, io::Error> {
+    pub fn calc(self) -> Result<String, io::Error> {
 
         let operation = self.check_operation(&self.operation_type)?;
 
