@@ -178,8 +178,6 @@ impl Operation {
         if unknown_2 != "V" && unknown_2 != "R" && unknown_2 != "I" && unknown_2 != "P" {
             Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid unknown_2 type. Types of unknown accepted: P, V, I, R"))?
         }
-        
-        println!("{:?}, {:?}, {}, {}", unknown_1, unknown_2, value_unknown_1, value_unknown_1);
              
         let invalid_unknow: io::Error  = io::Error::new(io::ErrorKind::InvalidInput, "Invalid operation type. Types of operation accepted: P, V, I, R");
 
