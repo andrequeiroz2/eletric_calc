@@ -1,8 +1,6 @@
 use std::io;
-use serde::{Serialize, Deserialize};
 
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 enum UnknownType{
     P,
     V,
@@ -18,14 +16,7 @@ struct Unknowns{
     unknown_2: (UnknownType, f64),
 }
 
-#[derive(Serialize)]
-pub struct OperationResult{
-    result: String,
-    // result: f64,
-    // constant: UnknownType,
-}
 
-#[derive(Deserialize)]
 pub struct Operation{
     pub operation_type: String, 
     pub unknown_1: String, 
