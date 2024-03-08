@@ -36,18 +36,18 @@ pub struct Operation{
 
 impl Operation {
 
-    pub fn new(self) -> Result<OperationResult, io::Error> {
+    pub fn new(self) -> Result<String, io::Error> {
 
         let operation = self.check_operation(&self.operation_type)?;
 
         let unknowns = self.check_unknowns(&self.unknown_1,  &self.unknown_2, self.value_unknown_1, self.value_unknown_2)?;
 
-        let result: OperationResult = self.result_operation(operation, unknowns)?;
+        let result = self.result_operation(operation, unknowns)?;
 
         Ok(result)
     }
 
-    fn result_operation(&self, operation_type: UnknownType, unknowns: Unknowns)-> Result<OperationResult, io::Error>{
+    fn result_operation(&self, operation_type: UnknownType, unknowns: Unknowns)-> Result<String, io::Error>{
         
         let (unknown_1, unknown_value_1) = unknowns.unknown_1;
         let (unknown_2, unknown_value_2) = unknowns.unknown_2;
@@ -62,10 +62,10 @@ impl Operation {
                     UnknownType::V => {
                         match unknown_2 {
                             UnknownType::I => {
-                                Ok(OperationResult {result: format!("{}{}", unknown_value_1 * unknown_value_2, String::from("W"))})
+                                Ok(format!("{}{}", unknown_value_1 * unknown_value_2, String::from("W")))
                             },
                             UnknownType::R => {
-                                Ok(OperationResult{result: format!("{}{}", ( unknown_value_1.powf(2.0)) / unknown_value_2, String::from("W"))})
+                                Ok(format!("{}{}", ( unknown_value_1.powf(2.0)) / unknown_value_2, String::from("W")))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -73,7 +73,7 @@ impl Operation {
                     UnknownType::R =>{
                         match unknown_2 {
                             UnknownType::I =>{
-                                Ok(OperationResult{result: format!("{}{}", unknown_value_1 * unknown_value_2.powf(2.0), String::from("W"))})
+                                Ok(format!("{}{}", unknown_value_1 * unknown_value_2.powf(2.0), String::from("W")))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -87,7 +87,7 @@ impl Operation {
                     UnknownType::V =>{
                         match unknown_2 {
                             UnknownType::R => { 
-                                Ok(OperationResult{result: format!("{}{:?}", unknown_value_1 / unknown_value_2,  UnknownType::I)})
+                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2,  UnknownType::I))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -95,11 +95,11 @@ impl Operation {
                     UnknownType::P =>{
                         match unknown_2 {
                             UnknownType::V =>{
-                                Ok(OperationResult{result:format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::I)})
+                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::I))
                             }
                             UnknownType::R =>{
                                 let result = unknown_value_1 / unknown_value_2;
-                                Ok(OperationResult{result: format!("{}{:?}", result.sqrt(), UnknownType::I)})
+                                Ok(format!("{}{:?}", result.sqrt(), UnknownType::I))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -113,10 +113,10 @@ impl Operation {
                     UnknownType::P =>{
                         match unknown_2 {
                             UnknownType::I => {
-                                Ok(OperationResult { result: format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::V)})
+                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::V))
                             }
                             UnknownType::R => {
-                                Ok(OperationResult { result: format!("{}{:?}", (unknown_value_1 / unknown_value_2).sqrt(), UnknownType::V)})
+                                Ok(format!("{}{:?}", (unknown_value_1 / unknown_value_2).sqrt(), UnknownType::V))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -125,7 +125,7 @@ impl Operation {
                     UnknownType::R =>{
                         match unknown_2 {
                             UnknownType::I => {
-                                Ok(OperationResult { result: format!("{}{:?}", unknown_value_1 * unknown_value_2, UnknownType::V)})
+                                Ok(format!("{}{:?}", unknown_value_1 * unknown_value_2, UnknownType::V))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -139,11 +139,11 @@ impl Operation {
                     UnknownType::V =>{
                         match unknown_2 {
                             UnknownType::I => {
-                                Ok(OperationResult { result: format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::R )})
+                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::R ))
                             }
 
                             UnknownType::P => {
-                                Ok(OperationResult { result: format!("{}{:?}", unknown_value_1.powf(2.0) / unknown_value_2, UnknownType::R)})
+                                Ok(format!("{}{:?}", unknown_value_1.powf(2.0) / unknown_value_2, UnknownType::R))
                             }
                             _ => Err(operation_invalid)?
                         }
@@ -151,7 +151,7 @@ impl Operation {
                     UnknownType::P => {
                          match unknown_2 {
                             UnknownType::I => {
-                                Ok(OperationResult { result: format!("{}{:?}", unknown_value_1 / unknown_value_2.powf(2.0), UnknownType::R)})
+                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2.powf(2.0), UnknownType::R))
                             }
                             _ => Err(operation_invalid)?
                         }
