@@ -1,23 +1,44 @@
 use std::io;
 
-#[derive(Clone, Debug, PartialEq)]
+const CONST_OPERATION: &str = "operation_type";
+const CONST_UNKNOWN1: &str = "unknown_1";
+const CONST_UNKNOWN2: &str = "unknown_2";
+
+#[derive(Clone, PartialEq)]
 enum UnknownType{
     P,
     V,
     I,
     R,   
 }
-impl Copy for UnknownType {}
-
-
-#[derive(Debug, Clone)]
-struct Unknowns{
-    unknown_1: (UnknownType, f64),
-    unknown_2: (UnknownType, f64),
+impl UnknownType {
+    fn from_str(s: &str, e: &str) -> Result<Self, io::Error> {
+      match s {
+        "P" => Ok(UnknownType::P),
+        "V" => Ok(UnknownType::V),
+        "I" => Ok(UnknownType::I),
+        "R" => Ok(UnknownType::R),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidInput, format!("Invalid {}. Values accepted: P, V, I, R", e))),
+      }
+    }
 }
 
+struct Unknowns{
+    unknown_1: UnknownType,
+    unknown_2: UnknownType,
+}
+impl Unknowns{
+    fn validate(&self) -> Result<(), io::Error>{
+        
+        if self.unknown_1 == self.unknown_2{
+            Err(io::Error::new(io::ErrorKind::InvalidInput, "Types of unknowns cannot be equal"))?
+        }
 
-pub struct Operation{
+        Ok(())
+    }
+} 
+
+pub struct EletricCalc{
     pub operation_type: String, 
     pub unknown_1: String, 
     pub unknown_2: String, 
@@ -25,199 +46,493 @@ pub struct Operation{
     pub value_unknown_2: f64
 }
 
-impl Operation {
+impl EletricCalc {
 
     pub fn calc(self) -> Result<String, io::Error> {
+        
+        let operation_type = UnknownType::from_str(&self.operation_type.to_uppercase(), &CONST_OPERATION)?;
+        let unknown_1 = UnknownType::from_str(&self.unknown_1.to_uppercase(), &CONST_UNKNOWN1)?;
+        let unknown_2 = UnknownType::from_str(&self.unknown_2.to_uppercase(), &CONST_UNKNOWN2)?;
+        
+        let unknowns = Unknowns{
+            unknown_1: unknown_1.clone(), 
+            unknown_2: unknown_2.clone(),
+        };
 
-        let operation = self.check_operation(&self.operation_type)?;
-
-        let unknowns = self.check_unknowns(&self.unknown_1,  &self.unknown_2, self.value_unknown_1, self.value_unknown_2)?;
-
-        let result = self.result_operation(operation, unknowns)?;
-
+        _ = unknowns.validate()?;
+    
+        let result = self.calc_result(operation_type, unknown_1, unknown_2);
+        
         Ok(result)
+
     }
 
-    fn result_operation(&self, operation_type: UnknownType, unknowns: Unknowns)-> Result<String, io::Error>{
-        
-        let (unknown_1, unknown_value_1) = unknowns.unknown_1;
-        let (unknown_2, unknown_value_2) = unknowns.unknown_2;
-
-        
-
-        let operation_invalid = io::Error::new(io::ErrorKind::Other, "Invalid operation.");
+    fn calc_result(&self, operation_type: UnknownType, unknown_1: UnknownType, unknown_2: UnknownType)-> String {
             
-        match  operation_type {
+        match operation_type {
             UnknownType::P =>{
-                match  unknown_1 {
-                    UnknownType::V => {
-                        match unknown_2 {
-                            UnknownType::I => {
-                                Ok(format!("{}{}", unknown_value_1 * unknown_value_2, String::from("W")))
-                            },
-                            UnknownType::R => {
-                                Ok(format!("{}{}", ( unknown_value_1.powf(2.0)) / unknown_value_2, String::from("W")))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    UnknownType::R =>{
-                        match unknown_2 {
-                            UnknownType::I =>{
-                                Ok(format!("{}{}", unknown_value_1 * unknown_value_2.powf(2.0), String::from("W")))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    _ => Err(operation_invalid)?
+
+                if (unknown_1 == UnknownType::V || unknown_1 == UnknownType::I) && (unknown_2 == UnknownType::V || unknown_2 == UnknownType::I){
+                
+                    return format!("{}{}", self.value_unknown_1 * self.value_unknown_2, String::from("W"))
+                
+                }
+                
+
+                if unknown_1 == UnknownType::I && unknown_2 == UnknownType::R {
+                
+                    return format!("{}{}", ( self.value_unknown_1.powf(2.0)) * self.value_unknown_2, String::from("W"))
+                
+                }else if unknown_1 == UnknownType::R && unknown_2 == UnknownType::I{
+                    
+                    return format!("{}{}", ( self.value_unknown_2.powf(2.0)) * self.value_unknown_1, String::from("W"))
+
+                }
+                
+                
+                if unknown_1 == UnknownType::V && unknown_2 == UnknownType::R {
+                    
+                    return format!("{}{}", ( self.value_unknown_1.powf(2.0)) / self.value_unknown_2, String::from("W"))
+
+                } else if unknown_1 == UnknownType::R && unknown_2 == UnknownType::V {
+                    
+                    return format!("{}{}", ( self.value_unknown_2.powf(2.0)) / self.value_unknown_1, String::from("W"))
+                
+                }else {
+
+                    return format!("Invalid operation.")
                 }
             }
             
             UnknownType::I =>{
-                match unknown_1 {
-                    UnknownType::V =>{
-                        match unknown_2 {
-                            UnknownType::R => { 
-                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2,  UnknownType::I))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    UnknownType::P =>{
-                        match unknown_2 {
-                            UnknownType::V =>{
-                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::I))
-                            }
-                            UnknownType::R =>{
-                                let result = unknown_value_1 / unknown_value_2;
-                                Ok(format!("{}{:?}", result.sqrt(), UnknownType::I))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    _ => Err(operation_invalid)?
+
+                if unknown_1 == UnknownType::P && unknown_2 == UnknownType::V {
+
+                    return format!("{}{}", self.value_unknown_1 / self.value_unknown_2, self.operation_type)
+                
+                }else if unknown_1 == UnknownType::V && unknown_2 == UnknownType::P{
+                    
+                    return format!("{}{}", self.value_unknown_2 / self.value_unknown_1, self.operation_type)
+
+                }
+
+                
+                if unknown_1 == UnknownType::V && unknown_2 == UnknownType::R {
+                    
+                    return format!("{}{}", self.value_unknown_1 / self.value_unknown_2, self.operation_type)
+
+                }else if unknown_1 == UnknownType::R && unknown_2 == UnknownType::V{
+
+                    return format!("{}{}", self.value_unknown_2 / self.value_unknown_1, self.operation_type)
+
+                }
+
+                if unknown_1 == UnknownType::P && unknown_2 == UnknownType::R {
+                    
+                    let result = (self.value_unknown_1 / self.value_unknown_2).sqrt();
+
+                    return format!("{}{}", result, self.operation_type)
+                    
+
+                }else if unknown_1 == UnknownType::R && unknown_2 == UnknownType::P{
+
+                    let result = (self.value_unknown_2 / self.value_unknown_1).sqrt();
+
+                    return format!("{}{}", result, self.operation_type)
+
+                }else{
+
+                    return format!("Invalid operation.")
+                
                 }
             }
 
+                
             UnknownType::V =>{
-                match unknown_1 {
-                    UnknownType::P =>{
-                        match unknown_2 {
-                            UnknownType::I => {
-                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::V))
-                            }
-                            UnknownType::R => {
-                                Ok(format!("{}{:?}", (unknown_value_1 / unknown_value_2).sqrt(), UnknownType::V))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
+                
+                if (unknown_1 == UnknownType::I || unknown_1 == UnknownType::R) && (unknown_2 == UnknownType::I || unknown_2 == UnknownType::R){
+                
+                    return format!("{}{}", self.value_unknown_1 * self.value_unknown_2, self.operation_type)
+                
+                }
+
+                if unknown_1 == UnknownType::P && unknown_2 == UnknownType::I{
+                    
+                    return format!("{}{}", self.value_unknown_1 / self.value_unknown_2, self.operation_type)
+                
+                }else if unknown_1 == UnknownType::I && unknown_2 == UnknownType::P{
+
+                    return format!("{}{}", self.value_unknown_2 / self.value_unknown_1, self.operation_type)
+                    
+                }
+                
+                if unknown_1 == UnknownType::P && unknown_2 == UnknownType::R{
+                
+                    let result = (self.value_unknown_1 * self.value_unknown_2).sqrt();
+
+                    return format!("{}{}", result, self.operation_type)
+
+                }else if unknown_1 == UnknownType::R && unknown_2 == UnknownType::P{
+
+                    let result = (self.value_unknown_2 * self.value_unknown_1).sqrt();
+
+                    return format!("{}{}", result, self.operation_type)
+                    
+                }else{
+
+                    return format!("Invalid operation.")
+                }
+
+            }
                         
-                    }
-                    UnknownType::R =>{
-                        match unknown_2 {
-                            UnknownType::I => {
-                                Ok(format!("{}{:?}", unknown_value_1 * unknown_value_2, UnknownType::V))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    _ => Err(operation_invalid)?  
-                }
-            }
-
             UnknownType::R =>{
-                match unknown_1 {
-                    UnknownType::V =>{
-                        match unknown_2 {
-                            UnknownType::I => {
-                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2, UnknownType::R ))
-                            }
+                if unknown_1 == UnknownType::P && unknown_2 == UnknownType::I{
+                    
+                    return format!("{}{}", self.value_unknown_1 / self.value_unknown_2.powf(2.0), self.operation_type)
+                
+                }else if unknown_1 == UnknownType::I && unknown_2 == UnknownType::P{
+                    
+                    return format!("{}{}", self.value_unknown_2 / self.value_unknown_1.powf(2.0), self.operation_type)
 
-                            UnknownType::P => {
-                                Ok(format!("{}{:?}", unknown_value_1.powf(2.0) / unknown_value_2, UnknownType::R))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    UnknownType::P => {
-                         match unknown_2 {
-                            UnknownType::I => {
-                                Ok(format!("{}{:?}", unknown_value_1 / unknown_value_2.powf(2.0), UnknownType::R))
-                            }
-                            _ => Err(operation_invalid)?
-                        }
-                    }
-                    _ => Err(operation_invalid)?
                 }
-            }    
+
+                if unknown_1 == UnknownType::V && unknown_2 == UnknownType::P{
+                    
+                    return format!("{}{}", self.value_unknown_1.powf(2.0) / self.value_unknown_2, self.operation_type)
+
+                }else if unknown_1 == UnknownType::P && unknown_2 == UnknownType::V{
+                    
+                    return format!("{}{}", self.value_unknown_2.powf(2.0) / self.value_unknown_1, self.operation_type)
+
+                }
+
+                if unknown_1 == UnknownType::V && unknown_2 == UnknownType::I{
+
+                    return format!("{}{}", self.value_unknown_1 / self.value_unknown_2, self.operation_type)
+
+                }else if unknown_1 == UnknownType::I && unknown_2 == UnknownType::V{
+                    
+                    return format!("{}{}", self.value_unknown_2 / self.value_unknown_1, self.operation_type)
+                
+                }else {
+                    
+                    return format!("Invalid operation.")
+
+                }
+            }
         }  
-    }
-    
-
-    fn check_operation<'a>(&self, operation_type: &str) -> Result<UnknownType, io::Error> {
-
-        match operation_type.to_uppercase().as_str() {
-            "P" => Ok(UnknownType::P),
-            "V" => Ok(UnknownType::V),
-            "I" => Ok(UnknownType::I),
-            "R" => Ok(UnknownType::R),
-            _ => Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid operation type. Types of operation accepted: P, V, I, R"))?
-        }
-    }
-    
-    fn check_unknowns<'a>(&self, unknown_1: &str, unknown_2: &str, value_unknown_1: f64, value_unknown_2: f64 ) -> Result<Unknowns, io::Error> {
-        
-        if unknown_1 == unknown_2{
-            Err(io::Error::new(io::ErrorKind::InvalidInput, "Types of unknowns are equal"))?
-        }
-        
-        if unknown_1 != "V" && unknown_1 != "R" && unknown_1 != "I" && unknown_1 != "P" {
-            Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid unknown_1 type. Types of unknown accepted: P, V, I, R"))?
-        }
-
-        if unknown_2 != "V" && unknown_2 != "R" && unknown_2 != "I" && unknown_2 != "P" {
-            Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid unknown_2 type. Types of unknown accepted: P, V, I, R"))?
-        }
-             
-        let invalid_unknow: io::Error  = io::Error::new(io::ErrorKind::InvalidInput, "Invalid operation type. Types of operation accepted: P, V, I, R");
-
-        match  unknown_1 {
-            "P" => {
-                match  unknown_2{
-                    "V" => Ok(Unknowns{unknown_1: (UnknownType::P, value_unknown_1), unknown_2:(UnknownType::V, value_unknown_2)}),
-                    "I" => Ok(Unknowns{unknown_1: (UnknownType::P, value_unknown_1), unknown_2:(UnknownType::I, value_unknown_2)}),
-                    "R" => Ok(Unknowns{unknown_1: (UnknownType::P, value_unknown_1), unknown_2:(UnknownType::R, value_unknown_2)}),
-                    _ => Err(invalid_unknow)
-                }
-            }
-
-            "V" => {
-                match  unknown_2{
-                    "P" => Ok(Unknowns{unknown_1: (UnknownType::V, value_unknown_1), unknown_2:(UnknownType::P, value_unknown_2)}),
-                    "I" => Ok(Unknowns{unknown_1: (UnknownType::V, value_unknown_1), unknown_2:(UnknownType::I, value_unknown_2)}),
-                    "R" => Ok(Unknowns{unknown_1: (UnknownType::V, value_unknown_1), unknown_2:(UnknownType::R, value_unknown_2)}),
-                    _ => Err(invalid_unknow)
-                }
-            }
-
-            "I" => {
-                match  unknown_2{
-                    "P" => Ok(Unknowns{unknown_1: (UnknownType::I, value_unknown_1), unknown_2:(UnknownType::P, value_unknown_2)}),
-                    "V" => Ok(Unknowns{unknown_1: (UnknownType::I, value_unknown_1), unknown_2:(UnknownType::V, value_unknown_2)}),
-                    "R" => Ok(Unknowns{unknown_1: (UnknownType::I, value_unknown_1), unknown_2:(UnknownType::R, value_unknown_2)}),
-                    _ => Err(invalid_unknow)
-                }
-            }
-            
-            "R" => {
-                match  unknown_2{
-                    "P" => Ok(Unknowns{unknown_1: (UnknownType::R, value_unknown_1), unknown_2:(UnknownType::P, value_unknown_2)}),
-                    "V" => Ok(Unknowns{unknown_1: (UnknownType::R, value_unknown_1), unknown_2:(UnknownType::V, value_unknown_2)}),
-                    "I" => Ok(Unknowns{unknown_1: (UnknownType::R, value_unknown_1), unknown_2:(UnknownType::I, value_unknown_2)}),
-                    _ => Err(invalid_unknow)
-                }
-            }
-            _ => Err(invalid_unknow)
-        }
     }      
+}
+
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+
+    use crate::EletricCalc;
+
+    #[test]
+    fn calc_power_v_i(){
+        let result = EletricCalc{
+            operation_type: String::from("P"),
+            unknown_1: String::from("V"),
+            unknown_2: String::from("I"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("4W"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_power_v_r(){
+        let result = EletricCalc{
+            operation_type: String::from("P"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("V"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("2W"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_power_i_r(){
+        let result = EletricCalc{
+            operation_type: String::from("p"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("i"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("8W"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_amps_i_r(){
+        let result = EletricCalc{
+            operation_type: String::from("I"),
+            unknown_1: String::from("V"),
+            unknown_2: String::from("P"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("1I"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_amps_p_r(){
+        let result = EletricCalc{
+            operation_type: String::from("I"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("P"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("1I"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_amps_v_r(){
+        let result = EletricCalc{
+            operation_type: String::from("I"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("V"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("1I"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_ohms_v_r(){
+        let result = EletricCalc{
+            operation_type: String::from("R"),
+            unknown_1: String::from("I"),
+            unknown_2: String::from("V"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("1R"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_ohms_v_p(){
+        let result = EletricCalc{
+            operation_type: String::from("R"),
+            unknown_1: String::from("V"),
+            unknown_2: String::from("P"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("2R"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_ohms_i_p(){
+        let result = EletricCalc{
+            operation_type: String::from("R"),
+            unknown_1: String::from("I"),
+            unknown_2: String::from("P"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("0.5R"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_volts_v_p(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("I"),
+            unknown_2: String::from("R"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("4V"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_volts_i_p(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("I"),
+            unknown_2: String::from("P"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("1V"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn calc_volts_r_p(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("P"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                assert_eq!(v, String::from("2V"));
+            },
+            Err(e) => {
+                print!("error:{}", e)
+            },  
+        };
+    }
+    #[test]
+    fn operation_error(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("R"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                print!("error:{}", v)
+            },
+            Err(_) => {
+                assert!(true) 
+            },  
+        };
+    }
+    #[test]
+    fn unknown_1_error(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("K"),
+            unknown_2: String::from("R"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                print!("error:{}", v)
+            },
+            Err(_) => {
+                assert!(true) 
+            },  
+        };
+    }
+    #[test]
+    fn unknown_2_error(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("K"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                print!("error:{}", v)
+            },
+            Err(_) => {
+                assert!(true) 
+            },  
+        };
+    }
+    #[test]
+    fn unknown_equals_error(){
+        let result = EletricCalc{
+            operation_type: String::from("V"),
+            unknown_1: String::from("R"),
+            unknown_2: String::from("R"),
+            value_unknown_1: 2.0,
+            value_unknown_2: 2.0
+        }.calc();
+
+        match result {
+            Ok(v) => {
+                print!("error:{}", v)
+            },
+            Err(_) => {
+                assert!(true) 
+            },  
+        };
+    }
 }
