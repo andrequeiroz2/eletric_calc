@@ -245,8 +245,8 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("4W"));
             },
-            Err(e) => {
-                print!("error:{}", e)
+            Err(_) => {
+                assert!(false)
             },  
         };
     }
@@ -264,8 +264,8 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("2W"));
             },
-            Err(e) => {
-                print!("error:{}", e)
+            Err(_) => {
+                assert!(false)
             },  
         };
     }
@@ -283,9 +283,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("8W"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },   
         };
     }
     #[test]
@@ -302,8 +302,8 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("1I"));
             },
-            Err(e) => {
-                print!("error:{}", e)
+            Err(_) => {
+                assert!(false)
             },  
         };
     }
@@ -321,9 +321,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("1I"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },   
         };
     }
     #[test]
@@ -340,9 +340,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("1I"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },    
         };
     }
     #[test]
@@ -359,9 +359,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("1R"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },   
         };
     }
     #[test]
@@ -378,8 +378,8 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("2R"));
             },
-            Err(e) => {
-                print!("error:{}", e)
+            Err(_) => {
+                assert!(false)
             },  
         };
     }
@@ -397,9 +397,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("0.5R"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },   
         };
     }
     #[test]
@@ -416,9 +416,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("4V"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },   
         };
     }
     #[test]
@@ -435,9 +435,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("1V"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },   
         };
     }
     #[test]
@@ -454,9 +454,9 @@ mod tests {
             Ok(v) => {
                 assert_eq!(v, String::from("2V"));
             },
-            Err(e) => {
-                print!("error:{}", e)
-            },  
+            Err(_) => {
+                assert!(false)
+            },    
         };
     }
     #[test]
@@ -470,8 +470,8 @@ mod tests {
         }.calc();
 
         match result {
-            Ok(v) => {
-                print!("error:{}", v)
+            Ok(_) => {
+                    assert!(false)  
             },
             Err(_) => {
                 assert!(true) 
@@ -489,8 +489,8 @@ mod tests {
         }.calc();
 
         match result {
-            Ok(v) => {
-                print!("error:{}", v)
+            Ok(_) => {
+                assert!(false)
             },
             Err(_) => {
                 assert!(true) 
@@ -508,8 +508,8 @@ mod tests {
         }.calc();
 
         match result {
-            Ok(v) => {
-                print!("error:{}", v)
+            Ok(_) => {
+                assert!(false)
             },
             Err(_) => {
                 assert!(true) 
@@ -527,8 +527,8 @@ mod tests {
         }.calc();
 
         match result {
-            Ok(v) => {
-                print!("error:{}", v)
+            Ok(_) => {
+                assert!(false)
             },
             Err(_) => {
                 assert!(true) 
