@@ -1,3 +1,10 @@
+//! # Eletric Calc
+//! eletric_calc is a calculator for Ohm's law. 
+//! 
+//! You can calculate Watts, Amps, Ohms, and Volts.
+ 
+
+
 use std::io;
 
 const CONST_OPERATION: &str = "operation_type";
@@ -37,6 +44,46 @@ impl Unknowns{
         Ok(())
     }
 } 
+
+///# Eletric Calc
+/// eletric_calc is a calculator for Ohm's law. 
+/// 
+/// You can calculate Watts, Amps, Ohms, and Volts.
+/// 
+/// P = Watts, I = Amps, R = Ohms, V = Volts.
+/// 
+/// # Fields (values)
+/// operation_type: Accepted values P, I, R, V.
+/// 
+/// unknown_1: Accepted values P, I, R, V.
+/// 
+/// unknown_2: Accepted values P, I, R, V.
+/// 
+/// value_unknown_1: Accepted Float.
+/// 
+/// value_unknown_2: Accepted Float.
+/// 
+///# Example 
+/// To calculate Volts, you will provide two other values 
+/// which can be I, R, or P.
+/// 
+/// ```rust
+/// use eletric_calc::EletricCalc;
+/// 
+/// let eletric_calc = EletricCalc{
+///         operation_type: String::from("V"),
+///         unknown_1: String::from("R"),
+///         unknown_2: String::from("P"),
+///         value_unknown_1: 2.0,
+///         value_unknown_2: 2.0
+///     }.calc();
+/// ```
+/// 
+///# Result
+/// The result is a String with the value of the calculation,
+///  followed by the calculated variable.
+/// 
+/// ex: 2V
 
 pub struct EletricCalc{
     pub operation_type: String, 
@@ -227,8 +274,6 @@ impl EletricCalc {
 
 #[cfg(test)]
 mod tests {
-    use std::io;
-
     use crate::EletricCalc;
 
     #[test]
@@ -289,7 +334,7 @@ mod tests {
         };
     }
     #[test]
-    fn calc_amps_i_r(){
+    fn calc_amps_v_p(){
         let result = EletricCalc{
             operation_type: String::from("I"),
             unknown_1: String::from("V"),
@@ -346,7 +391,7 @@ mod tests {
         };
     }
     #[test]
-    fn calc_ohms_v_r(){
+    fn calc_ohms_v_i(){
         let result = EletricCalc{
             operation_type: String::from("R"),
             unknown_1: String::from("I"),
@@ -403,7 +448,7 @@ mod tests {
         };
     }
     #[test]
-    fn calc_volts_v_p(){
+    fn calc_volts_i_r(){
         let result = EletricCalc{
             operation_type: String::from("V"),
             unknown_1: String::from("I"),
@@ -462,16 +507,16 @@ mod tests {
     #[test]
     fn operation_error(){
         let result = EletricCalc{
-            operation_type: String::from("V"),
+            operation_type: String::from("k"),
             unknown_1: String::from("R"),
-            unknown_2: String::from("R"),
+            unknown_2: String::from("P"),
             value_unknown_1: 2.0,
             value_unknown_2: 2.0
         }.calc();
 
         match result {
             Ok(_) => {
-                    assert!(false)  
+                assert!(false)  
             },
             Err(_) => {
                 assert!(true) 
