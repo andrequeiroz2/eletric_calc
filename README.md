@@ -17,9 +17,10 @@ P = Watts, I = Amps, R = Ohms, V = Volts.
 To calculate Volts, you will provide two other values which can be I, R, or P.
 
 ```rust
+use std::io;
 use eletric_calc::EletricCalc;
 
-let eletric_calc: <String, io::Error> = EletricCalc{
+let eletric_calc: Result<String, io::Error> = EletricCalc{
          operation_type: String::from("V"),
          unknown_1: String::from("R"),
          unknown_2: String::from("P"),

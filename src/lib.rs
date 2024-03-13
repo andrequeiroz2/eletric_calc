@@ -68,9 +68,10 @@ impl Unknowns{
 /// which can be I, R, or P.
 /// 
 /// ```rust
+/// use std::io;
 /// use eletric_calc::EletricCalc;
 /// 
-/// let eletric_calc = EletricCalc{
+/// let eletric_calc: Result<String, io::Error> = EletricCalc{
 ///         operation_type: String::from("V"),
 ///         unknown_1: String::from("R"),
 ///         unknown_2: String::from("P"),
